@@ -299,7 +299,7 @@ param_grid = [
 st.markdown('Grid Search Parameters with ' + str(param_grid))
 dtree = DecisionTreeClassifier(random_state=0)
 dtree_state = st.text('Loading decision tree classifier...')
-dtreeCV  = pickle.load(open('PycharmProjects/Streamlit_on_Heroku/dtree_model.pkl', 'rb'))
+dtreeCV  = pickle.load(open('dtree_model.pkl', 'rb'))
 dtree_state.text('Loaded decision tree classifier.')
 st.text(dtreeCV.best_params_)
 st.text([-1*dtreeCV.best_score_, dtreeCV.best_estimator_])
