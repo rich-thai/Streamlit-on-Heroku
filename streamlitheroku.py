@@ -1,24 +1,24 @@
 import streamlit as st
 import pandas as pd
 # import altair as alt
-# import numpy as np
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Rectangle, Arc
 # from nba_defs import draw_court
 # import os
 
-# from sklearn.pipeline import Pipeline
-# from sklearn.impute import SimpleImputer
-# from sklearn.compose import ColumnTransformer
-# from sklearn.cluster import KMeans
-# from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, StandardScaler
-# from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
-# from sklearn.linear_model import LogisticRegression
-# from sklearn.neighbors import KNeighborsClassifier
-# from sklearn.tree import DecisionTreeClassifier
-# from sklearn.ensemble import RandomForestClassifier
-# from sklearn.metrics import log_loss, make_scorer
-# from sklearn import tree
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, StandardScaler
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import log_loss, make_scorer
+from sklearn import tree
 # import cv2
 
 
@@ -161,7 +161,8 @@ action_df = df[df['season'].isin(seasons[index1:index2])]['action_type']\
 # create shot location scatter plot
 shotloc_df = df[df['season'].isin(seasons[index1:index2])]
 fig, ax = plt.subplots()
-ax.scatter(shotloc_df['loc_x'], shotloc_df['loc_y'], s=2, alpha =0.3, c=shotloc_df['shot_made_flag'])
+ax.scatter(shotloc_df[shotloc_df['shot_made_flag']==0]['loc_x'], shotloc_df[shotloc_df['shot_made_flag']==0]['loc_y'], s=2, alpha =0.3, color='r')
+ax.scatter(shotloc_df[shotloc_df['shot_made_flag']==1]['loc_x'], shotloc_df[shotloc_df['shot_made_flag']==1]['loc_y'], s=2, alpha =0.3, color='g')
 plt.ylabel('loc_y')
 plt.xlabel('loc_x')
 plt.xlim(-250, 250)
@@ -178,60 +179,60 @@ plt.xlabel('Shot Attempts')
 st.pyplot(fig)
 
 
-# figure, axes = plt.subplots(2, 2,figsize=(10,6))
-# binsize=100
-# shotloc_df[shotloc_df['period']==1]['period_minutes_remaining'].hist(bins=binsize, ax=axes[0,0])
-# shotloc_df[shotloc_df['period']==2]['period_minutes_remaining'].hist(bins=binsize, ax=axes[0,1])
-# shotloc_df[shotloc_df['period']==3]['period_minutes_remaining'].hist(bins=binsize, ax=axes[1,0])
-# shotloc_df[shotloc_df['period']==4]['period_minutes_remaining'].hist(bins=binsize, ax=axes[1,1])
-# figure.text(0.5, 0.04, 'Minutes Elapsed in the Quarter', ha='center')
-# figure.text(0.05, 0.5, 'Average Number of Shots / '+str(np.round(12/binsize*60,1))+'s', va='center', rotation='vertical')
-# axes[0,0].legend('1st')
-# axes[0,1].legend('2nd')
-# axes[1,0].legend('3rd')
-# axes[1,1].legend('4th')
-# st.pyplot(figure)
+figure, axes = plt.subplots(2, 2,figsize=(10,6))
+binsize=100
+shotloc_df[shotloc_df['period']==1]['period_minutes_remaining'].hist(bins=binsize, ax=axes[0,0])
+shotloc_df[shotloc_df['period']==2]['period_minutes_remaining'].hist(bins=binsize, ax=axes[0,1])
+shotloc_df[shotloc_df['period']==3]['period_minutes_remaining'].hist(bins=binsize, ax=axes[1,0])
+shotloc_df[shotloc_df['period']==4]['period_minutes_remaining'].hist(bins=binsize, ax=axes[1,1])
+figure.text(0.5, 0.04, 'Minutes Elapsed in the Quarter', ha='center')
+figure.text(0.05, 0.5, 'Average Number of Shots / '+str(np.round(12/binsize*60,1))+'s', va='center', rotation='vertical')
+axes[0,0].legend('1st')
+axes[0,1].legend('2nd')
+axes[1,0].legend('3rd')
+axes[1,1].legend('4th')
+st.pyplot(figure)
 
 
-# #-----------------------------------------------
-# st.subheader('Machine Learning')
-# st.markdown('Models are evaluated by log-loss: -log P(yt|yp) = -(yt log(yp) + (1 - yt) log(1 - yp))')
-# LogLoss = make_scorer(log_loss, greater_is_better=False, needs_proba=True)
+#-----------------------------------------------
+st.subheader('Machine Learning')
+st.markdown('Models are evaluated by log-loss: -log P(yt|yp) = -(yt log(yp) + (1 - yt) log(1 - yp))')
+LogLoss = make_scorer(log_loss, greater_is_better=False, needs_proba=True)
 
-# st.markdown('The data is separated into a training and test set based on if the shot_made_flag = null.')
-# st.markdown('Split the training data into 80% for training, 20% for validation.')
-# st.markdown('**Strategy:** Use grid search to find optimal hyperparameters and k-fold cross-validation.')
+st.markdown('The data is separated into a training and test set based on if the shot_made_flag = null.')
+st.markdown('Split the training data into 80% for training, 20% for validation.')
+st.markdown('**Strategy:** Use grid search to find optimal hyperparameters and k-fold cross-validation.')
 
-# ## Split into train/test set based on missing value
-# X_test = df[df['shot_made_flag'].isnull()].drop('shot_made_flag',axis=1)
-# X_train_full = df[df['shot_made_flag'].notnull()]
-# y_train_full = X_train_full.pop('shot_made_flag')
+## Split into train/test set based on missing value
+X_test = df[df['shot_made_flag'].isnull()].drop('shot_made_flag',axis=1)
+X_train_full = df[df['shot_made_flag'].notnull()]
+y_train_full = X_train_full.pop('shot_made_flag')
 
-# feature_names = df.drop('shot_made_flag', axis=1).columns.tolist()
-# cat_attribs = df.select_dtypes(include=object).columns.tolist()
-# num_attribs = df.select_dtypes(exclude=object).drop('shot_made_flag', axis=1).columns.tolist()
+feature_names = df.drop('shot_made_flag', axis=1).columns.tolist()
+cat_attribs = df.select_dtypes(include=object).columns.tolist()
+num_attribs = df.select_dtypes(exclude=object).drop('shot_made_flag', axis=1).columns.tolist()
 
-# #--------------------------
-# st.subheader('Logistic Regression')
+#--------------------------
+st.subheader('Logistic Regression')
 
-# num_pipeline = Pipeline([
-#  ('imputer', SimpleImputer(strategy="median")) # even though there are no missing values
-#     ,('std_scaler', StandardScaler())
-# ])
-# full_pipeline = ColumnTransformer([
-# ("num", num_pipeline, num_attribs),
-# ("cat", OrdinalEncoder(), cat_attribs),
-# ])
+num_pipeline = Pipeline([
+ ('imputer', SimpleImputer(strategy="median")) # even though there are no missing values
+    ,('std_scaler', StandardScaler())
+])
+full_pipeline = ColumnTransformer([
+("num", num_pipeline, num_attribs),
+("cat", OrdinalEncoder(), cat_attribs),
+])
 
-# X_train_transformed = full_pipeline.fit_transform(X_train_full)
-# X_test_transformed = full_pipeline.fit_transform(X_test)
-# X_train, X_valid, y_train, y_valid = train_test_split(X_train_transformed, y_train_full, test_size=0.2, random_state=42)
+X_train_transformed = full_pipeline.fit_transform(X_train_full)
+X_test_transformed = full_pipeline.fit_transform(X_test)
+X_train, X_valid, y_train, y_valid = train_test_split(X_train_transformed, y_train_full, test_size=0.2, random_state=42)
 
 
-# logclf = LogisticRegression(random_state=0)
-# scores = cross_val_score(logclf, X_train_transformed, y_train_full,
-# scoring=LogLoss, cv=10)
-# st.write(str(scores.mean()) + '+-' + str(scores.std()))
+logclf = LogisticRegression(random_state=0)
+scores = cross_val_score(logclf, X_train_transformed, y_train_full,
+scoring=LogLoss, cv=10)
+st.write(str(scores.mean()) + '+-' + str(scores.std()))
 
 
 # #-------------
