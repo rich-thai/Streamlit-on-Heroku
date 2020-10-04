@@ -308,15 +308,15 @@ st.text(dtreeCV.best_params_)
 st.text([dtreeCV.best_score_, dtreeCV.best_estimator_])
 
 
-fig = plt.figure(figsize=(7,7))
-_ = tree.plot_tree(dtreeCV.best_estimator_, 
-                   feature_names=num_attribs+cat_attribs,  
-                   class_names=['0','1'],
-                   filled=True)
-fig.canvas.draw()
-figdata = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
-figdata = figdata.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-st.image(figdata)
+# fig = plt.figure(figsize=(7,7))
+# _ = tree.plot_tree(dtreeCV.best_estimator_, 
+#                    feature_names=num_attribs+cat_attribs,  
+#                    class_names=['0','1'],
+#                    filled=True)
+# fig.canvas.draw()
+# figdata = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+# figdata = figdata.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+# st.image(figdata)
 
 
 # #-----------------------------------------------
