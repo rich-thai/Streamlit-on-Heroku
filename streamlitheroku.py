@@ -230,87 +230,93 @@ X_train, X_valid, y_train, y_valid = train_test_split(X_train_transformed, y_tra
 
 
 logclf = LogisticRegression(random_state=0)
+logclf_state = st.text('Running logistic regression...')
 scores = cross_val_score(logclf, X_train_transformed, y_train_full,
 scoring=LogLoss, cv=10)
+logclf_state.text('Logistic regression complete.')
 st.write(str(scores.mean()) + '+-' + str(scores.std()))
 
 
-# #-------------
-# st.subheader('k-Nearest Neighbours Classifier')
+#-------------
+st.subheader('k-Nearest Neighbours Classifier')
 
-# num_pipeline = Pipeline([
-#  ('imputer', SimpleImputer(strategy="median")) # even though there are no missing values
-#     ,('std_scaler', StandardScaler())
-# ])
-# full_pipeline = ColumnTransformer([
-# ("num", num_pipeline, num_attribs),
-# ("cat", OneHotEncoder(), cat_attribs),
-# ])
+num_pipeline = Pipeline([
+ ('imputer', SimpleImputer(strategy="median")) # even though there are no missing values
+    ,('std_scaler', StandardScaler())
+])
+full_pipeline = ColumnTransformer([
+("num", num_pipeline, num_attribs),
+("cat", OneHotEncoder(), cat_attribs),
+])
 
-# X_train_transformed = full_pipeline.fit_transform(X_train_full)
-# X_test_transformed = full_pipeline.fit_transform(X_test)
-# X_train, X_valid, y_train, y_valid = train_test_split(X_train_transformed, y_train_full, test_size=0.2, random_state=42)
-
-
-# knn = KNeighborsClassifier()
-# scores = cross_val_score(knn, X_train_transformed, y_train_full,
-# scoring=LogLoss, cv=10)
-# st.write(str(scores.mean()) + '+-' + str(scores.std()))
+X_train_transformed = full_pipeline.fit_transform(X_train_full)
+X_test_transformed = full_pipeline.fit_transform(X_test)
+X_train, X_valid, y_train, y_valid = train_test_split(X_train_transformed, y_train_full, test_size=0.2, random_state=42)
 
 
-
-# #------------------
-# st.subheader('Tree-Based Methods')
-# st.markdown('* Transform string features to ordinal encoding (0,1,2...).')
-# st.markdown('* Does not require feature scaling.')
-# st.markdown('* Finds the best feature and threshold that minimizes the impurity down the tree (gini).')
+knn = KNeighborsClassifier()
+knn_state = st.text('Running kNN classifier...')
+scores = cross_val_score(knn, X_train_transformed, y_train_full,
+scoring=LogLoss, cv=10)
+knn_state.text('kNN classifier complete.')
+st.write(str(scores.mean()) + '+-' + str(scores.std()))
 
 
 
-# ## Use an ordinal encoder to label the string features
-# encoder = OrdinalEncoder()
-
-# num_pipeline = Pipeline([
-#  ('imputer', SimpleImputer(strategy="median")) # even though there are no missing values
-# ])
-# full_pipeline = ColumnTransformer([
-# ("num", num_pipeline, num_attribs),
-# ("cat", encoder, cat_attribs),
-# ])
-
-# X_train_transformed = full_pipeline.fit_transform(X_train_full)
-# X_test_transformed = full_pipeline.fit_transform(X_test)
-# X_train, X_valid, y_train, y_valid = train_test_split(X_train_transformed, y_train_full, test_size=0.2, random_state=42)
+#------------------
+st.subheader('Tree-Based Methods')
+st.markdown('* Transform string features to ordinal encoding (0,1,2...).')
+st.markdown('* Does not require feature scaling.')
+st.markdown('* Finds the best feature and threshold that minimizes the impurity down the tree (gini).')
 
 
 
+## Use an ordinal encoder to label the string features
+encoder = OrdinalEncoder()
+
+num_pipeline = Pipeline([
+ ('imputer', SimpleImputer(strategy="median")) # even though there are no missing values
+])
+full_pipeline = ColumnTransformer([
+("num", num_pipeline, num_attribs),
+("cat", encoder, cat_attribs),
+])
+
+X_train_transformed = full_pipeline.fit_transform(X_train_full)
+X_test_transformed = full_pipeline.fit_transform(X_test)
+X_train, X_valid, y_train, y_valid = train_test_split(X_train_transformed, y_train_full, test_size=0.2, random_state=42)
 
 
-# #------------------------------
-# st.subheader('Decision Tree Classifier')
-
-# param_grid = [
-# {'max_depth': [2,3,4,5], 'max_features':[2,4,8,16,None], 'max_leaf_nodes':[2,3,4,None]}
-# ]
-# st.markdown('Grid Search Parameters with ' + str(param_grid))
-# dtree = DecisionTreeClassifier(random_state=0)
-# dtreeCV = GridSearchCV(dtree, param_grid, cv=10,
-#                        scoring=LogLoss,
-#                        return_train_score=True)
-# dtreeCV.fit(X_train_transformed, y_train_full)
-# st.text(dtreeCV.best_params_)
-# st.text([dtreeCV.best_score_, dtreeCV.best_estimator_])
 
 
-# fig = plt.figure(figsize=(7,7))
-# _ = tree.plot_tree(dtreeCV.best_estimator_, 
-#                    feature_names=num_attribs+cat_attribs,  
-#                    class_names=['0','1'],
-#                    filled=True)
-# fig.canvas.draw()
-# figdata = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
-# figdata = figdata.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-# st.image(figdata)
+
+#------------------------------
+st.subheader('Decision Tree Classifier')
+
+param_grid = [
+{'max_depth': [2,3,4,5], 'max_features':[2,4,8,16,None], 'max_leaf_nodes':[2,3,4,None]}
+]
+st.markdown('Grid Search Parameters with ' + str(param_grid))
+dtree = DecisionTreeClassifier(random_state=0)
+dtree_state = st.text('Running decision tree classifier...')
+dtreeCV = GridSearchCV(dtree, param_grid, cv=10,
+                       scoring=LogLoss,
+                       return_train_score=True)
+dtreeCV.fit(X_train_transformed, y_train_full)
+dtree_state.text('Decision tree classifier complete.')
+st.text(dtreeCV.best_params_)
+st.text([dtreeCV.best_score_, dtreeCV.best_estimator_])
+
+
+fig = plt.figure(figsize=(7,7))
+_ = tree.plot_tree(dtreeCV.best_estimator_, 
+                   feature_names=num_attribs+cat_attribs,  
+                   class_names=['0','1'],
+                   filled=True)
+fig.canvas.draw()
+figdata = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+figdata = figdata.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+st.image(figdata)
 
 
 # #-----------------------------------------------
