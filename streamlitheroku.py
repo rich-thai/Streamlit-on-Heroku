@@ -1,5 +1,5 @@
 import streamlit as st
-# import pandas as pd
+import pandas as pd
 # import numpy as np
 # import matplotlib.pyplot as plt
 # import os
@@ -26,18 +26,20 @@ st.markdown('**Data source**: https://www.kaggle.com/c/kobe-bryant-shot-selectio
 st.markdown('**Problem:** There are 5000 shot_made_flag values are missing, so the task is estimate the probability that the shot was a sucess.')
 st.markdown('**Approach:** Clean the dataframe of redundant features, visualize the data for any outliers, engineer additional features that maybe useful, develop a binary classifier for the shot_made_flag probability.')
 
-# @st.cache(allow_output_mutation=True)
-# def load_data():
-#     data = pd.read_csv('PycharmProjects/Streamlit/data.csv')
-#     return data
+url = 'https://raw.githubusercontent.com/rich-thai/Streamlit-on-Heroku/master/data.csv'
 
-# data_load_state = st.text('Loading data...')
-# df = load_data()
-# data_load_state.text("Done! (using st.cache)")
+@st.cache(allow_output_mutation=True)
+def load_data():
+    data = pd.read_csv(url, index_col=0)
+    return data
 
-# if st.checkbox('Show raw data (first 100)'):
-#     st.subheader('Raw data (first 100)')
-#     st.write(df.head(100))
+data_load_state = st.text('Loading data...')
+df = load_data()
+data_load_state.text("Done! (using st.cache)")
+
+if st.checkbox('Show raw data (first 100)'):
+    st.subheader('Raw data (first 100)')
+    st.write(df.head(100))
     
 # st.write(df['shot_zone_area'].unique())
 
