@@ -1,9 +1,11 @@
 import streamlit as st
 import pandas as pd
-# import numpy as np
-# import matplotlib.pyplot as plt
-# import os
 # import altair as alt
+# import numpy as np
+import matplotlib.pyplot as plt
+from nba_defs import draw_court
+# import os
+
 # from sklearn.pipeline import Pipeline
 # from sklearn.impute import SimpleImputer
 # from sklearn.compose import ColumnTransformer
@@ -17,7 +19,7 @@ import pandas as pd
 # from sklearn.metrics import log_loss, make_scorer
 # from sklearn import tree
 # import cv2
-# from kobe_def import draw_court
+
 
 
 st.title('Hello World')
@@ -30,7 +32,7 @@ url = 'https://raw.githubusercontent.com/rich-thai/Streamlit-on-Heroku/master/da
 
 @st.cache(allow_output_mutation=True)
 def load_data():
-    data = pd.read_csv(url, index_col=0)
+    data = pd.read_csv(url, index_col=0).reset_index()
     return data
 
 data_load_state = st.text('Loading data...')
@@ -40,71 +42,69 @@ data_load_state.text("Done! (using st.cache)")
 if st.checkbox('Show raw data (first 100)'):
     st.subheader('Raw data (first 100)')
     st.write(df.head(100))
+
+st.markdown('The shape of the dataframe is: '+str(df.shape))
+
+st.subheader('Cleaning the data')
+st.markdown('* Kobe only played for the Los Angeles Lakers for his entire career, so the features "team_id" and "team_name" are not needed.')
+st.markdown('* The "matchup" feature is redundant with "opponent", so this can also be dropped.')
+st.markdown('* The "game_date" feature can be split by year, month, day')
+st.markdown('* lat is linear with loc_y, and lon is linear with loc_x. Is is not necessary to keep both, so I will drop lat and lon.')
+st.markdown('* Sort data by game_date and game_event_id.')
+st.markdown('* Drop shot_id and game_event_id.')
+
+# cleaning data
+df['game_date'] = pd.to_datetime(df['game_date'])
+df.sort_values(by=['game_date','game_event_id'], inplace=True)
+df['year'] = df['game_date'].dt.year
+df['month'] = df['game_date'].dt.month
+df['day'] = df['game_date'].dt.day
+df = df.drop(['team_id','team_name','matchup','game_date','lat','lon','shot_id','game_event_id'], axis=1)
+df['period_minutes_remaining'] = df['minutes_remaining'] + df['seconds_remaining']/60
+
+
+if st.checkbox('Show cleaned dataframe'):
+    st.write(df.head())
+
+seasons = df.season.unique().tolist()
     
-# st.write(df['shot_zone_area'].unique())
+start_season, end_season = st.select_slider(
+     'Select a season',
+     options=seasons,
+     value=(seasons[0], seasons[-1]))
+st.write('You selected seasons between', start_season, 'and', end_season)
+index1 = seasons.index(start_season)
+index2= seasons.index(end_season)
 
-# st.markdown('The shape of the dataframe is: '+str(df.shape))
+action_df = df[df['season'].isin(seasons[index1:index2])]['action_type']\
+    .value_counts().reset_index()\
+    .rename(columns={'index':'action type', 'action_type':'Shots Attempted'})
 
-# st.subheader('Cleaning the data')
-# st.markdown('* Kobe only played for the Los Angeles Lakers for his entire career, so the features "team_id" and "team_name" are not needed.')
-# st.markdown('* The "matchup" feature is redundant with "opponent", so this can also be dropped.')
-# st.markdown('* The "game_date" feature can be split by year, month, day')
-# st.markdown('* lat is linear with loc_y, and lon is linear with loc_x. Is is not necessary to keep both, so I will drop lat and lon.')
-# st.markdown('* Sort data by game_date and game_event_id.')
-# st.markdown('* Drop shot_id and game_event_id.')
-
-# # cleaning data
-# df['game_date'] = pd.to_datetime(df['game_date'])
-# df.sort_values(by=['game_date','game_event_id'], inplace=True)
-# df['year'] = df['game_date'].dt.year
-# df['month'] = df['game_date'].dt.month
-# df['day'] = df['game_date'].dt.day
-# df = df.drop(['team_id','team_name','matchup','game_date','lat','lon','shot_id','game_event_id'], axis=1)
-# df['period_minutes_remaining'] = df['minutes_remaining'] + df['seconds_remaining']/60
-
-
-# if st.checkbox('Show cleaned dataframe'):
-#     st.write(df.head())
-
-# seasons = df.season.unique().tolist()
-    
-# start_season, end_season = st.select_slider(
-#      'Select a season',
-#      options=seasons,
-#      value=(seasons[0], seasons[-1]))
-# st.write('You selected seasons between', start_season, 'and', end_season)
-# index1 = seasons.index(start_season)
-# index2= seasons.index(end_season)
-
-# action_df = df[df['season'].isin(seasons[index1:index2])]['action_type']\
-#     .value_counts().reset_index()\
-#     .rename(columns={'index':'action type', 'action_type':'Shots Attempted'})
-
-# # st.write(alt.Chart(action_df).mark_bar().encode(
-# #     y=alt.X('action type', sort=None),
-# #     x='Shots Attempted',
-# # ))
+# st.write(alt.Chart(action_df).mark_bar().encode(
+#     y=alt.X('action type', sort=None),
+#     x='Shots Attempted',
+# ))
 
 
 
-# # create shot location scatter plot
-# shotloc_df = df[df['season'].isin(seasons[index1:index2])]
-# fig, ax = plt.subplots()
-# ax.scatter(shotloc_df['loc_x'], shotloc_df['loc_y'], s=2, alpha =0.3, c=shotloc_df['shot_made_flag'])
-# plt.ylabel('loc_y')
-# plt.xlabel('loc_x')
-# plt.xlim(-250, 250)
-# plt.ylim(-50, 420)
-# ax.set_aspect(500/470)
-# ax.legend([0,1,2])
-# draw_court(outer_lines=True)
-# st.pyplot(fig)
+# create shot location scatter plot
+shotloc_df = df[df['season'].isin(seasons[index1:index2])]
+fig, ax = plt.subplots()
+ax.scatter(shotloc_df['loc_x'], shotloc_df['loc_y'], s=2, alpha =0.3, c=shotloc_df['shot_made_flag'])
+plt.ylabel('loc_y')
+plt.xlabel('loc_x')
+plt.xlim(-250, 250)
+plt.ylim(-50, 420)
+ax.set_aspect(500/470)
+ax.legend([0,1,2])
+draw_court(outer_lines=True)
+st.pyplot(fig)
 
-# fig, ax = plt.subplots(figsize=(7,10))
-# ax.barh(action_df['action type'].values, action_df['Shots Attempted'].values, align='center')
-# plt.xscale('log')
-# plt.xlabel('Shot Attempts')
-# st.pyplot(fig)
+fig, ax = plt.subplots(figsize=(7,10))
+ax.barh(action_df['action type'].values, action_df['Shots Attempted'].values, align='center')
+plt.xscale('log')
+plt.xlabel('Shot Attempts')
+st.pyplot(fig)
 
 
 # figure, axes = plt.subplots(2, 2,figsize=(10,6))
