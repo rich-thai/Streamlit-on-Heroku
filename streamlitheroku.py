@@ -21,10 +21,10 @@ import streamlit as st
 
 
 st.title('Hello World')
-# st.markdown('This is an analysis of all the shots Kobe Bryant has made throughout his career, including missed shots. This is identified with the shot_made_flag.')
-# st.markdown('**Data source**: https://www.kaggle.com/c/kobe-bryant-shot-selection/overview')
-# st.markdown('**Problem:** There are 5000 shot_made_flag values are missing, so the task is estimate the probability that the shot was a sucess.')
-# st.markdown('**Approach:** Clean the dataframe of redundant features, visualize the data for any outliers, engineer additional features that maybe useful, develop a binary classifier for the shot_made_flag probability.')
+st.markdown('This is an analysis of all the shots Kobe Bryant has made throughout his career, including missed shots. This is identified with the shot_made_flag.')
+st.markdown('**Data source**: https://www.kaggle.com/c/kobe-bryant-shot-selection/overview')
+st.markdown('**Problem:** There are 5000 shot_made_flag values are missing, so the task is estimate the probability that the shot was a sucess.')
+st.markdown('**Approach:** Clean the dataframe of redundant features, visualize the data for any outliers, engineer additional features that maybe useful, develop a binary classifier for the shot_made_flag probability.')
 
 # @st.cache(allow_output_mutation=True)
 # def load_data():
