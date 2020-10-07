@@ -97,7 +97,7 @@ def draw_court(ax=None, color='black', lw=2, outer_lines=False):
 
 
 st.title('Kobe Shot Selection Analysis')
-st.markdown("![Alt Text](http://clipart-library.com/img1/989120.png)")
+st.markdown("![Alt Text](https://lh3.googleusercontent.com/proxy/B9s25DQyw9oRhhko3KoqnVaOdbQZVH-xMix092I1TZLQ4xV2SN0nUpstGG73TPKmaBQFefouEh7etnKfpdMoXEDC)")
 st.markdown('This is an analysis of all the shots Kobe Bryant has made throughout his career, including missed shots. This is identified with the shot_made_flag.')
 st.markdown('**Data source**: https://www.kaggle.com/c/kobe-bryant-shot-selection/overview')
 st.markdown('**Problem:** There are 5000 shot_made_flag values are missing, so the task is estimate the probability that the shot was a success.')
@@ -122,13 +122,13 @@ if st.checkbox('Load raw data (first 100)'):
 
 #--------------------------------------------    
 st.subheader('Background')
-st.markdown('* 5-time NBA champion.')
+st.markdown('* 5-time NBA champion')
 st.markdown('* 1346 games played')
 st.markdown('* 33643 career points')
 st.markdown('* Career high of 81 points in a game against Toronto in 2006')
 st.markdown('* 26 game winning shots, 8 buzzer beaters')
-st.markdown('* 18 NBA All-Start appearances')
-st.markdown('* RIP to Kobe, Gianna and others involved in the accident.') 
+st.markdown('* 18 NBA All-Star appearances')
+st.markdown('* RIP to Kobe, Gianna and others involved in the accident') 
 
 
     
