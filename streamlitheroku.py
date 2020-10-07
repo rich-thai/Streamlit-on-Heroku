@@ -310,7 +310,7 @@ param_grid = [
 st.markdown('Grid Search Parameters with ' + str(param_grid))
 dtree = DecisionTreeClassifier(random_state=0)
 dtree_state = st.text('Loading decision tree classifier...')
-dtreeCV  = pickle.load(open(Models/dtree_model.pkl', 'rb'))
+dtreeCV  = pickle.load(open('Models/dtree_model.pkl', 'rb'))
 dtree_state.text('Loaded decision tree classifier.')
 
 if st.checkbox('Show decision tree output'):
