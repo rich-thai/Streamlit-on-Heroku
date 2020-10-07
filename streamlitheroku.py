@@ -119,7 +119,7 @@ if st.checkbox('Load raw data (first 100)'):
     st.markdown('The shape of the dataframe is: '+str(df.shape))
 
 
-#--------------------    
+#--------------------------------------------    
 st.subheader('Background')
 st.markdown('* 5-time NBA champion.')
 st.markdown('* 1346 games played')
@@ -131,7 +131,7 @@ st.markdown('* RIP to Kobe, Gianna and others involved in the accident.')
 
 
     
-#-------------------------
+#--------------------------------------------   
 st.subheader('Cleaning the data')
 st.markdown('* Kobe only played for the Los Angeles Lakers for his entire career, so the features "team_id" and "team_name" are not needed.')
 st.markdown('* The "matchup" feature contains "@" if it is an away game, and "vs" for a home game. Create an "away" binary feature.')
@@ -152,23 +152,12 @@ if st.checkbox('Clean the dataframe (first 5 shown)'):
 
     st.write(df.head())
 
-# seasons = df.season.unique().tolist()
-    
-
-
-
-
-# st.write(alt.Chart(action_df).mark_bar().encode(
-#     y=alt.X('action type', sort=None),
-#     x='Shots Attempted',
-# ))
-
-#---------------------------------
+#--------------------------------------------   
 st.subheader('Visualize Shot Selection')
 
-# create shot location scatter plot
 
 if st.checkbox('Show Visualizations'):
+    # create shot location scatter plot
     shotloc_df = df
     action_df = df['action_type']\
         .value_counts().reset_index()\
@@ -188,7 +177,7 @@ if st.checkbox('Show Visualizations'):
 
 
 
-    # create shot location scatter plot
+    # create shot location scatter multiplot
     fig, ax = plt.subplots(2,2, figsize=(14,20))
     sns.scatterplot(data=shotloc_df, x='loc_x', y='loc_y',hue='shot_zone_area', ax=ax[0,0])
     sns.scatterplot(data=shotloc_df, x='loc_x', y='loc_y',hue='shot_zone_basic', ax=ax[0,1])
@@ -245,7 +234,7 @@ if st.checkbox('Show Visualizations'):
     axes[1,1].legend('4th')
     st.pyplot(figure)
 
-#--------
+#--------------------------------------------  
 st.subheader('Additional Cleaning')
 st.markdown('Machine learning relies on recognizing patterns from large sets of data. There are some rare shots that can generalized.')
 st.markdown('* There are many action_types that were not used often. Set a threshold of 20 shot attempts. An action_type below threshold is labelled as combined_shot_type. Drop the combined_shot_type column.')
@@ -264,7 +253,7 @@ if st.checkbox('Further clean the dataframe (first 5 shown)'):
 
 
 
-#-----------------------------------------------
+#--------------------------------------------  
 st.subheader('Machine Learning')
 st.markdown('Models are evaluated by log-loss: -log P(yt|yp) = -(yt log(yp) + (1 - yt) log(1 - yp))')
 
@@ -274,7 +263,7 @@ st.markdown('**Strategy:** Use grid search to find optimal hyperparameters and k
 st.markdown('**Models:** Decision tree, Random forest, XGBoost.') 
 
 
-#------------------
+#--------------------------------------------  
 st.subheader('Tree-Based Methods')
 st.markdown('* One of the most intuitive types of machine learning models.')
 st.markdown('* Finds the best feature and threshold that minimizes the impurity down the tree (gini).')
@@ -301,7 +290,7 @@ if st.checkbox('One-hot encode the dataframe (first 5 shown)'):
 
 
 
-#------------------------------
+#--------------------------------------------  
 st.subheader('Decision Tree Classifier')
 
 param_grid = [
@@ -343,7 +332,7 @@ st.markdown('Kaggle evaluates this model on the test set and gives a log-loss me
 
 
 
-#-----------------------------------------------
+#--------------------------------------------  
 st.subheader('Random Forest Classifier')
 st.markdown('An ensemble of decision trees where subsets of data is divided amongst tree. The ensemble votes for the most likely outcome.')
 
@@ -370,7 +359,7 @@ st.markdown('The log-loss evaluation is slightly worse but there is a larger var
 st.markdown('Kaggle evaluates this model on the test set and gives a log-loss metric of 0.62.')
 
 
-#-----------------------------------------------
+#--------------------------------------------  
 st.subheader('Gradient Boosting with XGBoost')
 st.markdown('Decision trees are sequentially fit to the residuals, and outputs are summed.')
 
@@ -399,7 +388,7 @@ st.markdown('This has the lowest log-loss from 10-fold cross-validation. We can 
 st.markdown('Kaggle evaluates this model on the test set and gives a log-loss metric of 0.60.')
 
 
-#-------------------------------
+#--------------------------------------------  
 st.subheader('Kobe Shot Predictor')
 if st.checkbox('Show this section'):
     st.markdown('Interactive shot prediction using parameters in the sidebar. To make this run a bit faster, uncheck all outputs above this section.')
@@ -460,7 +449,6 @@ if st.checkbox('Show this section'):
     input_df = pd.read_csv('empty_df.csv')
 
     shot_est2 = pd.DataFrame(actionModel.predict(loc_scaler2.transform(coord)).transpose()).reset_index().rename(columns={'index':'action_type',0:'action_probability'})
-    # .sort_values(by='Probability', ascending=False).head()
     shot_est2['action_type'] = encoderMade.inverse_transform(shot_est2['action_type'].values.reshape(-1,1))
     shot_est2 = shot_est2.sort_values(by='action_probability', ascending=False).head().reset_index().drop('index',axis=1)
     action_dummies_df = pd.get_dummies(shot_est2['action_type'], prefix='action')
@@ -474,7 +462,6 @@ if st.checkbox('Show this section'):
     playoffs='0'
     season=season_slider
     shot_distance= str(np.clip(np.int(xysq/const),0,35))
-    # shot_type= position_df['shot_type'][0]
     shot_zone_area = position_df['shot_zone_area'][0]
     shot_zone_basic = position_df['shot_zone_basic'][0]
     shot_zone_range = position_df['shot_zone_range'][0]
