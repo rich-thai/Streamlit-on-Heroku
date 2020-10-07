@@ -401,115 +401,108 @@ st.markdown('Kaggle evaluates this model on the test set and gives a log-loss me
 
 #-------------------------------
 st.subheader('Kobe Shot Predictor')
-st.markdown('Interactive shot prediction using parameters in the sidebar. To make this run a bit faster, uncheck all outputs above this section.')
-st.markdown('A neural network is trained to predict the shot_type, shot_zone_area, shot_zone_basic, shot_zone_range and most probable action type given loc_x and loc_y.')
-st.markdown('This is trained for all shots (missed and made), but for action_type, it is only trained on shots made to choose the most likely successful shot. This determines the top 5 action_types and action_probability.')
-st.markdown('From this + slidebar parameters, the inputs are fed to the XGBoost model to predict the shot_sucess_probability.')
+if st.checkbox('Show this section'):
+    st.markdown('Interactive shot prediction using parameters in the sidebar. To make this run a bit faster, uncheck all outputs above this section.')
+    st.markdown('A neural network is trained to predict the shot_type, shot_zone_area, shot_zone_basic, shot_zone_range and most probable action type given loc_x and loc_y.')
+    st.markdown('This is trained for all shots (missed and made), but for action_type, it is only trained on shots made to choose the most likely successful shot. This determines the top 5 action_types and action_probability.')
+    st.markdown('From this + slidebar parameters, the inputs are fed to the XGBoost model to predict the shot_sucess_probability.')
 
 
 
 
-## load models
-loc_scaler = pickle.load(open('Models/loc_scaler.pkl', 'rb'))
-loc_scaler2 = pickle.load(open('Models/loc_scaler2.pkl', 'rb'))
-encoder = pickle.load(open('Models/encoder.pkl', 'rb'))
-encoderMade = pickle.load(open('Models/encoderMade.pkl', 'rb'))
-pointValueModel = keras.models.load_model('Models/pointValueModel')
-zoneAreaModel = keras.models.load_model('Models/zoneAreaModel')
-zoneBasicModel = keras.models.load_model('Models/zoneBasicModel')
-zoneRangeModel = keras.models.load_model('Models/zoneRangeModel')
-actionModel = keras.models.load_model('Models/actionModel')
+    ## load models
+    loc_scaler = pickle.load(open('Models/loc_scaler.pkl', 'rb'))
+    loc_scaler2 = pickle.load(open('Models/loc_scaler2.pkl', 'rb'))
+    encoder = pickle.load(open('Models/encoder.pkl', 'rb'))
+    encoderMade = pickle.load(open('Models/encoderMade.pkl', 'rb'))
+    pointValueModel = keras.models.load_model('Models/pointValueModel')
+    zoneAreaModel = keras.models.load_model('Models/zoneAreaModel')
+    zoneBasicModel = keras.models.load_model('Models/zoneBasicModel')
+    zoneRangeModel = keras.models.load_model('Models/zoneRangeModel')
+    actionModel = keras.models.load_model('Models/actionModel')
 
 
-teams = ['ATL','BKN', 'BOS', 'CHA', 'CHI', 'CLE', 'DAL', 'DEN', 'DET', 'GSW', 'HOU', 'IND', 'LAC', 'MEM', 'MIA', 'MIL', 'MIN', 'NJN', 'NOH', 'NOP','NYK','OKC','ORL','PHI','PHX','POR','SAC', 'SAS', 'SEA', 'TOR', 'UTA', 'VAN', 'WAS']
-seasons = ['1996-97', '1997-98', '1998-99', '1999-00', '2000-01', '2001-02',
-       '2002-03', '2003-04', '2004-05', '2005-06', '2006-07', '2007-08',
-       '2008-09', '2009-10', '2010-11', '2011-12', '2012-13', '2013-14',
-       '2014-15', '2015-16']
+    teams = ['ATL','BKN', 'BOS', 'CHA', 'CHI', 'CLE', 'DAL', 'DEN', 'DET', 'GSW', 'HOU', 'IND', 'LAC', 'MEM', 'MIA', 'MIL', 'MIN', 'NJN', 'NOH', 'NOP','NYK','OKC','ORL','PHI','PHX','POR','SAC', 'SAS', 'SEA', 'TOR', 'UTA', 'VAN', 'WAS']
+    seasons = ['1996-97', '1997-98', '1998-99', '1999-00', '2000-01', '2001-02',
+           '2002-03', '2003-04', '2004-05', '2005-06', '2006-07', '2007-08',
+           '2008-09', '2009-10', '2010-11', '2011-12', '2012-13', '2013-14',
+           '2014-15', '2015-16']
 
-x_slider = st.sidebar.slider('loc_x',min_value=-250, max_value=250, value=0, step=1)
-y_slider = st.sidebar.slider('loc_y',min_value=-50, max_value=420, value=300, step=1)
-season_slider = st.sidebar.select_slider(
-     "Season",
-     options=seasons, value='2010-11')
-teams_slider = st.sidebar.select_slider(
-     "Opponent",
-     options=teams, value='TOR')
-period_slider = st.sidebar.slider('Quarter',min_value=1, max_value=4, value=1, step=1)
-time_slider = st.sidebar.slider('Minutes Remaining',min_value=0, max_value=11, value=11, step=1)
-away_radio = st.sidebar.radio('Away?',('True','False'))
-
-
-xysq= np.sqrt(x_slider**2 + y_slider**2)
-const = 10.53425466162496
-coord = [[x_slider, y_slider, xysq]]
+    x_slider = st.sidebar.slider('loc_x',min_value=-250, max_value=250, value=0, step=1)
+    y_slider = st.sidebar.slider('loc_y',min_value=-50, max_value=420, value=300, step=1)
+    season_slider = st.sidebar.select_slider(
+         "Season",
+         options=seasons, value='2010-11')
+    teams_slider = st.sidebar.select_slider(
+         "Opponent",
+         options=teams, value='TOR')
+    period_slider = st.sidebar.slider('Quarter',min_value=1, max_value=4, value=1, step=1)
+    time_slider = st.sidebar.slider('Minutes Remaining',min_value=0, max_value=11, value=11, step=1)
+    away_radio = st.sidebar.radio('Away?',('True','False'))
 
 
-position_df = pd.DataFrame(encoder.inverse_transform(pd.DataFrame([pointValueModel.predict_classes(loc_scaler.transform(coord))
-                                                                   ,zoneAreaModel.predict_classes(loc_scaler.transform(coord))
-                                                                   ,zoneBasicModel.predict_classes(loc_scaler.transform(coord))
-                                                                   ,zoneRangeModel.predict_classes(loc_scaler.transform(coord))]).transpose()),
-                          columns=['shot_type', 'shot_zone_area', 'shot_zone_basic', 'shot_zone_range'])
-shot_est = encoderMade.inverse_transform(actionModel.predict_classes(loc_scaler2.transform(coord)).reshape(-1,1))[0][0]
+    xysq= np.sqrt(x_slider**2 + y_slider**2)
+    const = 10.53425466162496
+    coord = [[x_slider, y_slider, xysq]]
 
-st.write('Neural network ouput:')
 
-st.write(position_df)
+    position_df = pd.DataFrame(encoder.inverse_transform(pd.DataFrame([pointValueModel.predict_classes(loc_scaler.transform(coord))
+                                                                       ,zoneAreaModel.predict_classes(loc_scaler.transform(coord))
+                                                                       ,zoneBasicModel.predict_classes(loc_scaler.transform(coord))
+                                                                       ,zoneRangeModel.predict_classes(loc_scaler.transform(coord))]).transpose()),
+                              columns=['shot_type', 'shot_zone_area', 'shot_zone_basic', 'shot_zone_range'])
+    shot_est = encoderMade.inverse_transform(actionModel.predict_classes(loc_scaler2.transform(coord)).reshape(-1,1))[0][0]
 
-input_df = pd.read_csv('empty_df.csv')
+    st.write('Neural network ouput:')
 
-shot_est2 = pd.DataFrame(actionModel.predict(loc_scaler2.transform(coord)).transpose()).reset_index().rename(columns={'index':'action_type',0:'action_probability'})
-# .sort_values(by='Probability', ascending=False).head()
-shot_est2['action_type'] = encoderMade.inverse_transform(shot_est2['action_type'].values.reshape(-1,1))
-shot_est2 = shot_est2.sort_values(by='action_probability', ascending=False).head().reset_index().drop('index',axis=1)
-action_dummies_df = pd.get_dummies(shot_est2['action_type'], prefix='action')
+    st.write(position_df)
 
-input_df = input_df.merge(action_dummies_df, how='right')
-input_df.fillna(0, inplace=True)
+    input_df = pd.read_csv('empty_df.csv')
 
-minutes_remaining = str(time_slider)
-last_seconds='False'
-period=str(period_slider)
-playoffs='0'
-season=season_slider
-shot_distance= str(np.clip(np.int(xysq/const),0,35))
-# shot_type= position_df['shot_type'][0]
-shot_zone_area = position_df['shot_zone_area'][0]
-shot_zone_basic = position_df['shot_zone_basic'][0]
-shot_zone_range = position_df['shot_zone_range'][0]
-opponent = teams_slider
-action= shot_est
-away= away_radio
+    shot_est2 = pd.DataFrame(actionModel.predict(loc_scaler2.transform(coord)).transpose()).reset_index().rename(columns={'index':'action_type',0:'action_probability'})
+    # .sort_values(by='Probability', ascending=False).head()
+    shot_est2['action_type'] = encoderMade.inverse_transform(shot_est2['action_type'].values.reshape(-1,1))
+    shot_est2 = shot_est2.sort_values(by='action_probability', ascending=False).head().reset_index().drop('index',axis=1)
+    action_dummies_df = pd.get_dummies(shot_est2['action_type'], prefix='action')
 
-features = ['minutes_remaining','last_seconds','period', 'playoffs', 'season', 'shot_distance', 'shot_zone_area', 'shot_zone_basic', 'shot_zone_range','opponent', 'action','away']
+    input_df = input_df.merge(action_dummies_df, how='right')
+    input_df.fillna(0, inplace=True)
 
-input_df.fillna(0, inplace=True)
-for f in features:
-    input_df[f+'_'+str(eval(f))]=1
+    minutes_remaining = str(time_slider)
+    last_seconds='False'
+    period=str(period_slider)
+    playoffs='0'
+    season=season_slider
+    shot_distance= str(np.clip(np.int(xysq/const),0,35))
+    # shot_type= position_df['shot_type'][0]
+    shot_zone_area = position_df['shot_zone_area'][0]
+    shot_zone_basic = position_df['shot_zone_basic'][0]
+    shot_zone_range = position_df['shot_zone_range'][0]
+    opponent = teams_slider
+    action= shot_est
+    away= away_radio
 
-input_df['minutes_remaining_0']=0    
+    features = ['minutes_remaining','last_seconds','period', 'playoffs', 'season', 'shot_distance', 'shot_zone_area', 'shot_zone_basic', 'shot_zone_range','opponent', 'action','away']
 
-success_prob_df = pd.Series(xgb_clfCV.predict_proba(input_df)[:,1])
+    input_df.fillna(0, inplace=True)
+    for f in features:
+        input_df[f+'_'+str(eval(f))]=1
 
-st.write('XGBoost ouput:')
-shot_est2['shot_success_probability'] = success_prob_df
-st.write(shot_est2)
+    input_df['minutes_remaining_0']=0    
 
-if st.checkbox('Show court plot'):
-    fig, ax = plt.subplots()
-    plt.scatter(x=x_slider, y=y_slider)
-    plt.ylabel('loc_y')
-    plt.xlabel('loc_x')
-    plt.xlim(-250, 250)
-    plt.ylim(-50, 420)
-    ax.set_aspect(500/470)
-    draw_court(outer_lines=True)
-    st.pyplot(fig)
+    success_prob_df = pd.Series(xgb_clfCV.predict_proba(input_df)[:,1])
 
-# start_season, end_season = st.select_slider(
-#      'Select a season',
-#      options=seasons,
-#      value=(seasons[0], seasons[-1]))
-# st.write('You selected seasons between', start_season, 'and', end_season)
-# index1 = seasons.index(start_season)
-# index2= seasons.index(end_season)
+    st.write('XGBoost ouput:')
+    shot_est2['shot_success_probability'] = success_prob_df
+    st.write(shot_est2)
+
+    if st.checkbox('Show court plot'):
+        fig, ax = plt.subplots()
+        plt.scatter(x=x_slider, y=y_slider)
+        plt.ylabel('loc_y')
+        plt.xlabel('loc_x')
+        plt.xlim(-250, 250)
+        plt.ylim(-50, 420)
+        ax.set_aspect(500/470)
+        draw_court(outer_lines=True)
+        st.pyplot(fig)
