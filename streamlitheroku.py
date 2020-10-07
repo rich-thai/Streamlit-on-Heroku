@@ -97,6 +97,7 @@ def draw_court(ax=None, color='black', lw=2, outer_lines=False):
 
 
 st.title('Kobe Shot Selection Analysis')
+st.markdown("![Alt Text](http://clipart-library.com/img1/989120.png)")
 st.markdown('This is an analysis of all the shots Kobe Bryant has made throughout his career, including missed shots. This is identified with the shot_made_flag.')
 st.markdown('**Data source**: https://www.kaggle.com/c/kobe-bryant-shot-selection/overview')
 st.markdown('**Problem:** There are 5000 shot_made_flag values are missing, so the task is estimate the probability that the shot was a success.')
@@ -297,12 +298,13 @@ param_grid = [
 {'max_depth': [2,3,4,5], 'max_features':[2,4,8,16,None], 'max_leaf_nodes':[2,3,4,None]}
 ]
 st.markdown('Grid Search Parameters with ' + str(param_grid))
-dtree = DecisionTreeClassifier(random_state=0)
-dtree_state = st.text('Loading decision tree classifier...')
-dtreeCV  = pickle.load(open('Models/dtree_model.pkl', 'rb'))
-dtree_state.text('Loaded decision tree classifier.')
+
 
 if st.checkbox('Show decision tree output'):
+    dtree = DecisionTreeClassifier(random_state=0)
+    dtree_state = st.text('Loading decision tree classifier...')
+    dtreeCV  = pickle.load(open('Models/dtree_model.pkl', 'rb'))
+    dtree_state.text('Loaded decision tree classifier.')
     st.text(dtreeCV.best_params_)
     st.text([-1*dtreeCV.best_score_, dtreeCV.best_estimator_])
 
@@ -493,3 +495,6 @@ if st.checkbox('Show this section'):
         ax.set_aspect(500/470)
         draw_court(outer_lines=True)
         st.pyplot(fig)
+
+if st.checkbox('End of Presentation'):
+    st.markdown("![Alt Text](https://i.pinimg.com/736x/2a/2d/4a/2a2d4ade3622665672de6930aeddee9e.jpg)")
